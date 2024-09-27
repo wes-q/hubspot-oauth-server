@@ -194,6 +194,9 @@ const getContact = async (accessToken) => {
 };
 
 const ticketsInAnalysisPipeline = async (accessToken, dealId, ticketPipelineToCheck) => {
+  const hubspot = require("@hubspot/api-client");
+  const hubspotClient = new hubspot.Client({ accessToken: accessToken });
+
   try {
     const response = await hubspotClient.crm.tickets.searchApi.doSearch({
       filterGroups: [

@@ -1,4 +1,5 @@
 const TICKET_PIPELINE_TO_CHECK = "147097214";
+const BASE_URL = "https://hubspot-oauth-server.onrender.com/oauth-callback";
 
 require("dotenv").config();
 const express = require("express");
@@ -42,7 +43,9 @@ if (process.env.SCOPE) {
 }
 
 // On successful install, users will be redirected to /oauth-callback
-const REDIRECT_URI = `http://localhost:${PORT}/oauth-callback`;
+// const REDIRECT_URI = `http://localhost:${PORT}/oauth-callback`;
+
+const REDIRECT_URI = `${BASE_URL}/oauth-callback`;
 
 //===========================================================================//
 
@@ -266,5 +269,7 @@ app.get("/fetches", async (req, res) => {
   res.status(300).json({ message: "hello world" });
 });
 
-app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));
-opn(`http://localhost:${PORT}`);
+// app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));
+// opn(`http://localhost:${PORT}`);
+app.listen(PORT, () => console.log(`=== Starting your app on ${BASE_URL} ===`));
+opn(`${BASE_URL}`);

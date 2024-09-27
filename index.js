@@ -1,5 +1,5 @@
 const TICKET_PIPELINE_TO_CHECK = "147097214";
-const BASE_URL = "https://hubspot-oauth-server.onrender.com/oauth-callback";
+const BASE_URL = "https://hubspot-oauth-server.onrender.com";
 
 require("dotenv").config();
 const express = require("express");

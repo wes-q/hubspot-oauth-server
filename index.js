@@ -193,35 +193,51 @@ const getContact = async (accessToken) => {
   }
 };
 
-const dealHasAssociatedTicketInAPipeline = async (accessToken, dealId, ticketPipelineToCheck) => {
-  const associatedTicketIds = [];
-
+const ticketsInAnalysisPipeline = async (accessToken, dealId, ticketPipelineToCheck) => {
   try {
-    const headers = {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    };
-
-    const dealData = await client.get(`/crm/v3/objects/deals/${dealId}?associations=tickets`, {
-      headers,
+    const response = await hubspotClient.crm.tickets.searchApi.doSearch({
+      filterGroups: [
+        {
+          filters: [
+            {
+              propertyName: "associations.deal",
+              operator: "EQ",
+              value: dealId,
+            },
+            {
+              propertyName: "hs_pipeline",
+              operator: "EQ",
+              value: ticketPipelineToCheck,
+            },
+          ],
+        },
+      ],
+      after: "",
+      limit: 50,
+      properties: [
+        "building_type",
+        "cost_basis",
+        "property_placed_in_service_date",
+        "property_5yr_est",
+        "property_7yr_est",
+        "property_15yr_est",
+        "subject_property_address_1",
+        "subject_property_city",
+        "subject_property_state",
+        "subject_property_zip_code",
+        "property__bonus__year_applied",
+        "fees",
+        "projected_additional_depreciation",
+        "tax_impact_on_depreciation_difference",
+        "after_tax_study_fee",
+      ],
+      sorts: [""],
     });
 
-    dealData.data.associations.tickets.results.forEach((element) => {
-      associatedTicketIds.push(element.id);
-    });
-
-    for (const element of associatedTicketIds) {
-      const ticketData = await client.get(`crm/v3/objects/tickets/${element}`, { headers });
-      const pipeline = ticketData.data.properties.hs_pipeline;
-
-      if (pipeline === ticketPipelineToCheck) {
-        return true;
-      }
-    }
-
-    return false;
+    return response;
   } catch (error) {
-    console.error("Error", error.message);
+    console.error("Error!!", error.message);
+    throw error;
   }
 };
 
@@ -266,7 +282,19 @@ app.get("/getData", async (req, res) => {
 });
 
 app.get("/fetches", async (req, res) => {
-  res.status(300).json({ message: "hello world" });
+  const dealRecordID = req.query.dealId;
+  const accessToken = await getAccessToken(req.sessionID);
+  console.log(`Deal Record ID ${dealRecordID}`);
+
+  try {
+    const ticketsInAnalysisPipelineData = await ticketsInAnalysisPipeline(accessToken, dealRecordID, TICKET_PIPELINE_TO_CHECK);
+    console.log(JSON.stringify(ticketsInAnalysisPipelineData));
+    res.status(200).json(ticketsInAnalysisPipelineData);
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "An unknown error occurred";
+    console.error("Error making request:", errorMessage);
+    res.status(500).json({ error: errorMessage });
+  }
 });
 
 // app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));

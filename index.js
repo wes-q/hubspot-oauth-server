@@ -1,18 +1,24 @@
-require('dotenv').config();
-const express = require('express');
-const request = require('request-promise-native');
-const NodeCache = require('node-cache');
-const session = require('express-session');
-const opn = require('open');
+const TICKET_PIPELINE_TO_CHECK = "147097214";
+
+require("dotenv").config();
+const express = require("express");
+const request = require("request-promise-native");
+const NodeCache = require("node-cache");
+const session = require("express-session");
+const opn = require("open");
+const axios = require("axios").default;
+
 const app = express();
-
 const PORT = 3000;
-
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
+const client = axios.create({
+  baseURL: "https://api.hubapi.com",
+});
+
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
-    throw new Error('Missing CLIENT_ID or CLIENT_SECRET environment variable.')
+  throw new Error("Missing CLIENT_ID or CLIENT_SECRET environment variable.");
 }
 
 //===========================================================================//
@@ -23,16 +29,16 @@ if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
 //  installing. If they don't match your app's configuration, users will
 //  see an error page.
 
-// Replace the following with the values from your app auth config, 
+// Replace the following with the values from your app auth config,
 // or set them as environment variables before running.
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 // Scopes for this app will default to `crm.objects.contacts.read`
 // To request others, set the SCOPE environment variable instead
-let SCOPES = ['crm.objects.contacts.read'];
+let SCOPES = ["crm.objects.contacts.read"];
 if (process.env.SCOPE) {
-    SCOPES = (process.env.SCOPE.split(/ |, ?|%20/)).join(' ');
+  SCOPES = process.env.SCOPE.split(/ |, ?|%20/).join(" ");
 }
 
 // On successful install, users will be redirected to /oauth-callback
@@ -41,12 +47,14 @@ const REDIRECT_URI = `http://localhost:${PORT}/oauth-callback`;
 //===========================================================================//
 
 // Use a session to keep track of client ID
-app.use(session({
-  secret: Math.random().toString(36).substring(2),
-  resave: false,
-  saveUninitialized: true
-}));
- 
+app.use(
+  session({
+    secret: Math.random().toString(36).substring(2),
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
 //================================//
 //   Running the OAuth 2.0 Flow   //
 //================================//
@@ -55,20 +63,20 @@ app.use(session({
 // Build the authorization URL to redirect a user
 // to when they choose to install the app
 const authUrl =
-  'https://app.hubspot.com/oauth/authorize' +
+  "https://app.hubspot.com/oauth/authorize" +
   `?client_id=${encodeURIComponent(CLIENT_ID)}` + // app's client ID
   `&scope=${encodeURIComponent(SCOPES)}` + // scopes being requested by the app
   `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`; // where to send the user after the consent page
 
 // Redirect the user from the installation page to
 // the authorization URL
-app.get('/install', (req, res) => {
-  console.log('');
-  console.log('=== Initiating OAuth 2.0 flow with HubSpot ===');
-  console.log('');
+app.get("/install", (req, res) => {
+  console.log("");
+  console.log("=== Initiating OAuth 2.0 flow with HubSpot ===");
+  console.log("");
   console.log("===> Step 1: Redirecting user to your app's OAuth URL");
   res.redirect(authUrl);
-  console.log('===> Step 2: User is being prompted for consent by HubSpot');
+  console.log("===> Step 2: User is being prompted for consent by HubSpot");
 });
 
 // Step 2
@@ -79,25 +87,25 @@ app.get('/install', (req, res) => {
 // Step 3
 // Receive the authorization code from the OAuth 2.0 Server,
 // and process it based on the query parameters that are passed
-app.get('/oauth-callback', async (req, res) => {
-  console.log('===> Step 3: Handling the request sent by the server');
+app.get("/oauth-callback", async (req, res) => {
+  console.log("===> Step 3: Handling the request sent by the server");
 
   // Received a user authorization code, so now combine that with the other
   // required values and exchange both for an access token and a refresh token
   if (req.query.code) {
-    console.log('       > Received an authorization token');
+    console.log("       > Received an authorization token");
 
     const authCodeProof = {
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
       redirect_uri: REDIRECT_URI,
-      code: req.query.code
+      code: req.query.code,
     };
 
     // Step 4
     // Exchange the authorization code for an access token and refresh token
-    console.log('===> Step 4: Exchanging authorization code for an access token and refresh token');
+    console.log("===> Step 4: Exchanging authorization code for an access token and refresh token");
     const token = await exchangeForTokens(req.sessionID, authCodeProof);
     if (token.message) {
       return res.redirect(`/error?msg=${token.message}`);
@@ -115,8 +123,8 @@ app.get('/oauth-callback', async (req, res) => {
 
 const exchangeForTokens = async (userId, exchangeProof) => {
   try {
-    const responseBody = await request.post('https://api.hubapi.com/oauth/v1/token', {
-      form: exchangeProof
+    const responseBody = await request.post("https://api.hubapi.com/oauth/v1/token", {
+      form: exchangeProof,
     });
     // Usually, this token data should be persisted in a database and associated with
     // a user identity.
@@ -124,7 +132,7 @@ const exchangeForTokens = async (userId, exchangeProof) => {
     refreshTokenStore[userId] = tokens.refresh_token;
     accessTokenCache.set(userId, tokens.access_token, Math.round(tokens.expires_in * 0.75));
 
-    console.log('       > Received an access token and refresh token');
+    console.log("       > Received an access token and refresh token");
     return tokens.access_token;
   } catch (e) {
     console.error(`       > Error exchanging ${exchangeProof.grant_type} for access token`);
@@ -134,11 +142,11 @@ const exchangeForTokens = async (userId, exchangeProof) => {
 
 const refreshAccessToken = async (userId) => {
   const refreshTokenProof = {
-    grant_type: 'refresh_token',
+    grant_type: "refresh_token",
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
     redirect_uri: REDIRECT_URI,
-    refresh_token: refreshTokenStore[userId]
+    refresh_token: refreshTokenStore[userId],
   };
   return await exchangeForTokens(userId, refreshTokenProof);
 };
@@ -147,7 +155,7 @@ const getAccessToken = async (userId) => {
   // If the access token has expired, retrieve
   // a new one using the refresh token
   if (!accessTokenCache.get(userId)) {
-    console.log('Refreshing expired access token');
+    console.log("Refreshing expired access token");
     await refreshAccessToken(userId);
   }
   return accessTokenCache.get(userId);
@@ -162,23 +170,55 @@ const isAuthorized = (userId) => {
 //====================================================//
 
 const getContact = async (accessToken) => {
-  console.log('');
-  console.log('=== Retrieving a contact from HubSpot using the access token ===');
+  console.log("");
+  console.log("=== Retrieving a contact from HubSpot using the access token ===");
   try {
     const headers = {
       Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     };
-    console.log('===> Replace the following request.get() to test other API calls');
-    console.log('===> request.get(\'https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1\')');
-    const result = await request.get('https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1', {
-      headers: headers
+    console.log("===> Replace the following request.get() to test other API calls");
+    console.log("===> request.get('https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1')");
+    const result = await request.get("https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1", {
+      headers: headers,
     });
 
     return JSON.parse(result).contacts[0];
   } catch (e) {
-    console.error('  > Unable to retrieve contact');
+    console.error("  > Unable to retrieve contact");
     return JSON.parse(e.response.body);
+  }
+};
+
+const dealHasAssociatedTicketInAPipeline = async (accessToken, dealId, ticketPipelineToCheck) => {
+  const associatedTicketIds = [];
+
+  try {
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    };
+
+    const dealData = await client.get(`/crm/v3/objects/deals/${dealId}?associations=tickets`, {
+      headers,
+    });
+
+    dealData.data.associations.tickets.results.forEach((element) => {
+      associatedTicketIds.push(element.id);
+    });
+
+    for (const element of associatedTicketIds) {
+      const ticketData = await client.get(`crm/v3/objects/tickets/${element}`, { headers });
+      const pipeline = ticketData.data.properties.hs_pipeline;
+
+      if (pipeline === ticketPipelineToCheck) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error", error.message);
   }
 };
 
@@ -187,7 +227,7 @@ const getContact = async (accessToken) => {
 //========================================//
 
 const displayContactName = (res, contact) => {
-  if (contact.status === 'error') {
+  if (contact.status === "error") {
     res.write(`<p>Unable to retrieve contact! Error Message: ${contact.message}</p>`);
     return;
   }
@@ -195,8 +235,8 @@ const displayContactName = (res, contact) => {
   res.write(`<p>Contact name: ${firstname.value} ${lastname.value}</p>`);
 };
 
-app.get('/', async (req, res) => {
-  res.setHeader('Content-Type', 'text/html');
+app.get("/", async (req, res) => {
+  res.setHeader("Content-Type", "text/html");
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
   if (isAuthorized(req.sessionID)) {
     const accessToken = await getAccessToken(req.sessionID);
@@ -209,9 +249,16 @@ app.get('/', async (req, res) => {
   res.end();
 });
 
-app.get('/error', (req, res) => {
-  res.setHeader('Content-Type', 'text/html');
+app.get("/error", (req, res) => {
+  res.setHeader("Content-Type", "text/html");
   res.write(`<h4>Error: ${req.query.msg}</h4>`);
+  res.end();
+});
+
+app.get("/getData", async (req, res) => {
+  const accessToken = await getAccessToken(req.sessionID);
+  const show = await dealHasAssociatedTicketInAPipeline(accessToken, "22378999333", TICKET_PIPELINE_TO_CHECK);
+  console.log(show);
   res.end();
 });
 

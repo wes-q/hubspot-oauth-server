@@ -262,5 +262,9 @@ app.get("/getData", async (req, res) => {
   res.end();
 });
 
+app.get("/fetches", async (req, res) => {
+  res.status(300).json({ message: "hello world" });
+});
+
 app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));
 opn(`http://localhost:${PORT}`);

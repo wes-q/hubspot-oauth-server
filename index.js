@@ -16,6 +16,18 @@ const PORT = 3000;
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
+const helmet = require("helmet");
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "https://hubspot-oauth-server.onrender.com"], // Allow your frontend server
+      // other directives as needed...
+    },
+  })
+);
+
 const client = axios.create({
   baseURL: "https://api.hubapi.com",
 });
@@ -48,16 +60,6 @@ if (process.env.SCOPE) {
 // const REDIRECT_URI = `http://localhost:${PORT}/oauth-callback`;
 
 const REDIRECT_URI = `${BASE_URL}/oauth-callback`;
-
-// app.use((req, res, next) => {
-//   res.setHeader("Content-Security-Policy", "connect-src 'self' https://hubspot-oauth-server.onrender.com https://api.hubapi.com;");
-//   next();
-// });
-
-app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "default-src 'self'; connect-src 'self' https://hubspot-oauth-server.onrender.com https://api.hubapi.com;");
-  next();
-});
 
 //===========================================================================//
 

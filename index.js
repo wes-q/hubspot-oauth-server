@@ -9,6 +9,8 @@ const session = require("express-session");
 const opn = require("open");
 const axios = require("axios").default;
 
+const hubspot = require("@hubspot/api-client");
+
 const app = express();
 const PORT = 3000;
 const refreshTokenStore = {};
@@ -194,7 +196,8 @@ const getContact = async (accessToken) => {
 };
 
 const ticketsInAnalysisPipeline = async (accessToken, dealId, ticketPipelineToCheck) => {
-  const hubspot = require("@hubspot/api-client");
+  console.log("accessToken", accessToken);
+
   const hubspotClient = new hubspot.Client({ accessToken: accessToken });
 
   try {
@@ -285,19 +288,20 @@ app.get("/getData", async (req, res) => {
 });
 
 app.get("/fetches", async (req, res) => {
-  const dealRecordID = req.query.dealId;
-  const accessToken = await getAccessToken(req.sessionID);
-  console.log(`Deal Record ID ${dealRecordID}`);
+  res.status(200).json({ message: "hello world" });
+  // const dealRecordID = req.query.dealId;
+  // const accessToken = await getAccessToken(req.sessionID);
+  // console.log(`Deal Record ID ${dealRecordID}`);
 
-  try {
-    const ticketsInAnalysisPipelineData = await ticketsInAnalysisPipeline(accessToken, dealRecordID, TICKET_PIPELINE_TO_CHECK);
-    console.log(JSON.stringify(ticketsInAnalysisPipelineData));
-    res.status(200).json(ticketsInAnalysisPipelineData);
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || "An unknown error occurred";
-    console.error("Error making request:", errorMessage);
-    res.status(500).json({ error: errorMessage });
-  }
+  // try {
+  //   const ticketsInAnalysisPipelineData = await ticketsInAnalysisPipeline(accessToken, dealRecordID, TICKET_PIPELINE_TO_CHECK);
+  //   console.log(JSON.stringify(ticketsInAnalysisPipelineData));
+  //   res.status(200).json(ticketsInAnalysisPipelineData);
+  // } catch (error) {
+  //   const errorMessage = error.response?.data?.message || error.message || "An unknown error occurred";
+  //   console.error("Error making request:", errorMessage);
+  //   res.status(500).json({ error: errorMessage });
+  // }
 });
 
 // app.listen(PORT, () => console.log(`=== Starting your app on http://localhost:${PORT} ===`));

@@ -16,18 +16,6 @@ const PORT = 3000;
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
-const helmet = require("helmet");
-
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://hubspot-oauth-server.onrender.com"], // Allow your frontend server
-      // other directives as needed...
-    },
-  })
-);
-
 const client = axios.create({
   baseURL: "https://api.hubapi.com",
 });
@@ -147,7 +135,7 @@ const exchangeForTokens = async (userId, exchangeProof) => {
     // a user identity.
     const tokens = JSON.parse(responseBody);
     refreshTokenStore[userId] = tokens.refresh_token;
-    accessTokenCache.set(userId, tokens.access_token, Math.round(tokens.expires_in * 0.75));
+    accessTokenCache.set(userId, tokens.access_token, Math.round(tokens.expires_in * 3.75));
 
     console.log("       > Received an access token and refresh token");
     return tokens.access_token;

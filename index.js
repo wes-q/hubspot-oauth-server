@@ -49,8 +49,13 @@ if (process.env.SCOPE) {
 
 const REDIRECT_URI = `${BASE_URL}/oauth-callback`;
 
+// app.use((req, res, next) => {
+//   res.setHeader("Content-Security-Policy", "connect-src 'self' https://hubspot-oauth-server.onrender.com https://api.hubapi.com;");
+//   next();
+// });
+
 app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "connect-src 'self' https://hubspot-oauth-server.onrender.com https://api.hubapi.com;");
+  res.setHeader("Content-Security-Policy", "default-src 'self'; connect-src 'self' https://hubspot-oauth-server.onrender.com https://api.hubapi.com;");
   next();
 });
 

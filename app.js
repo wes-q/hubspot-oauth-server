@@ -57,7 +57,7 @@ const getInitialTokens = async (code) => {
 };
 
 const exchangeForTokens = async (exchangeProof) => {
-  console.log(JSON.stringify(exchangeProof));
+  // console.log(JSON.stringify(exchangeProof));
 
   try {
     const response = await axios.post("https://api.hubapi.com/oauth/v1/token", null, {
@@ -68,9 +68,9 @@ const exchangeForTokens = async (exchangeProof) => {
     const newAccessToken = response.data.access_token;
     const expiresIn = response.data.expires_in;
 
-    console.log("Refresh Token", newRefreshToken);
-    console.log("Access Token", newAccessToken);
-    console.log("Expires In", expiresIn);
+    // console.log("Refresh Token", newRefreshToken);
+    // console.log("Access Token", newAccessToken);
+    // console.log("Expires In", expiresIn);
 
     setToken(newAccessToken, expiresIn);
     console.log("Access token is set");
@@ -100,7 +100,7 @@ const getAccessToken = async () => {
 };
 
 const ticketsInAnalysisPipeline = async (accessToken, dealId, ticketPipelineToCheck) => {
-  console.log("accessToken", accessToken);
+  // console.log("accessToken", accessToken);
 
   const hubspotClient = new hubspot.Client({ accessToken: accessToken });
 
@@ -175,7 +175,7 @@ app.get("/oauth-callback", async (req, res) => {
 app.get("/get-data", async (req, res) => {
   const dealRecordID = req.query.dealId; // || "22678534467"; // TODO: remove default value for testing
   const accessToken = await getAccessToken();
-  console.log(`Deal Record ID ${dealRecordID}`);
+  // console.log(`Deal Record ID ${dealRecordID}`);
 
   try {
     const ticketsInAnalysisPipelineData = await ticketsInAnalysisPipeline(accessToken, dealRecordID, TICKET_PIPELINE_TO_CHECK);
@@ -198,11 +198,9 @@ app.use(express.json());
 
 app.patch("/save-data", async (req, res) => {
   const accessToken = await getAccessToken();
-  console.log(req.body);
   const { ticketId, fees } = req.body;
-  console.log(`Ticket Id ${ticketId} Fees ${fees}`);
   await saveData(GOOGLE_API_URL, accessToken, ticketId, fees);
-  res.status(200).json({ mensahe: "tagumpay" });
+  res.status(200).json({ message: "save finished" });
 });
 
 app.listen(PORT, () => {

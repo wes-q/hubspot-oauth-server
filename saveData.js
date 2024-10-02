@@ -39,7 +39,7 @@ const getTicketData = async (accessToken, ticketId) => {
 };
 
 const getCalculatedProperties = async (GOOGLE_API_URL, buildingType, costBasis, monthAcquired, yearAcquired, yearApplied, year5, year7, year15, fees) => {
-  console.log("GOOGLE_API_URL", GOOGLE_API_URL);
+  // console.log("GOOGLE_API_URL", GOOGLE_API_URL);
   let executeScriptURL = `${GOOGLE_API_URL}?buildingType=${buildingType}&costBasis=${costBasis}&monthAcquired=${monthAcquired}&yearAcquired=${yearAcquired}&yearApplied=${yearApplied}&year5=${year5}&year7=${year7}&year15=${year15}`;
 
   if (parseFloat(fees) > 0) {

@@ -8,8 +8,11 @@ const dotenv = require("dotenv");
 const path = require("path");
 const express = require("express");
 const axios = require("axios");
-const app = express();
 const hubspot = require("@hubspot/api-client");
+const { saveData } = require("./saveData");
+
+const app = express();
+
 let accessToken;
 
 const env = process.env.NODE_ENV || "development";
@@ -26,6 +29,7 @@ const TICKET_PIPELINE_TO_CHECK = process.env.TICKET_PIPELINE_TO_CHECK;
 const BASE_URL = process.env.NODE_ENV === "production" ? process.env.BASE_URL : `http://localhost:${PORT}`;
 const REDIRECT_URI = `${BASE_URL}/oauth-callback`;
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   throw new Error("Missing CLIENT_ID or CLIENT_SECRET environment variable.");
@@ -169,26 +173,8 @@ app.get("/oauth-callback", async (req, res) => {
   }
 });
 
-// app.get("/fetch-data", async (req, res) => {
-//   const accessToken = await getAccessToken();
-//   console.log("fetch data ACCESS", accessToken);
-//   try {
-//     const contactsResponse = await axios.get("https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1", {
-//       headers: {
-//         Authorization: `Bearer ${accessToken}`,
-//         "Content-Type": "application/json",
-//       },
-//     });
-
-//     res.json(contactsResponse.data);
-//   } catch (error) {
-//     console.error("Error fetching data from HubSpot:", error.response.data);
-//     res.status(500).send("Error fetching data from HubSpot");
-//   }
-// });
-
 app.get("/get-data", async (req, res) => {
-  const dealRecordID = req.query.dealId || "22678534467"; // TODO: remove default value for testing
+  const dealRecordID = req.query.dealId; // || "22678534467"; // TODO: remove default value for testing
   const accessToken = await getAccessToken();
   console.log(`Deal Record ID ${dealRecordID}`);
 
@@ -203,14 +189,21 @@ app.get("/get-data", async (req, res) => {
   }
 });
 
-app.get("/save-data", async (req, res) => {
-  // TODO:
-});
-
 app.get("/error", (req, res) => {
   res.setHeader("Content-Type", "text/html");
   res.write(`<h4>Error: ${req.query.msg}</h4>`);
   res.end();
+});
+
+app.use(express.json());
+
+app.patch("/save-data", async (req, res) => {
+  const accessToken = await getAccessToken();
+  console.log(req.body);
+  const { ticketId, fees } = req.body;
+  console.log(`Ticket Id ${ticketId} Fees ${fees}`);
+  await saveData(GOOGLE_API_URL, accessToken, ticketId, fees);
+  res.status(200).json({ mensahe: "tagumpay" });
 });
 
 app.listen(PORT, () => {

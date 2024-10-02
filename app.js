@@ -26,8 +26,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const SCOPES = process.env.SCOPES;
 const TICKET_PIPELINE_TO_CHECK = process.env.TICKET_PIPELINE_TO_CHECK;
-const BASE_URL = process.env.NODE_ENV === "production" ? process.env.BASE_URL : `http://localhost:${PORT}`;
-const REDIRECT_URI = `${BASE_URL}/oauth-callback`;
+const REDIRECT_URI = process.env.REDIRECT_URI;
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
 

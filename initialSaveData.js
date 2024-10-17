@@ -1,6 +1,7 @@
 const axios = require("axios").default;
 const hubspot = require("@hubspot/api-client");
 let hubspotClient = null;
+let googleApiUrl = null;
 
 async function getDealsAssociatedTickets(dealID) {
   const response = await hubspotClient.crm.tickets.searchApi.doSearch({
@@ -37,7 +38,7 @@ async function getDealsAssociatedTickets(dealID) {
 }
 
 const getCalculatedProperties = async (buildingType, costBasis, monthAcquired, yearAcquired, yearApplied, year5, year7, year15, fees) => {
-  let executeScriptURL = `${GOOGLE_API_URL}?buildingType=${buildingType}&costBasis=${costBasis}&monthAcquired=${monthAcquired}&yearAcquired=${yearAcquired}&yearApplied=${yearApplied}&year5=${year5}&year7=${year7}&year15=${year15}`;
+  let executeScriptURL = `${googleApiUrl}?buildingType=${buildingType}&costBasis=${costBasis}&monthAcquired=${monthAcquired}&yearAcquired=${yearAcquired}&yearApplied=${yearApplied}&year5=${year5}&year7=${year7}&year15=${year15}`;
 
   if (parseFloat(fees) > 0) {
     executeScriptURL += `&fees=${fees}`;
@@ -111,10 +112,11 @@ const batchCreateLineItems = async (ticketsPropsAndData, dealID) => {
   }
 };
 
-exports.initialSaveData = async (GOOGLE_API_URL, accessToken, dealId) => {
-  console.log(GOOGLE_API_URL);
-  console.log(accessToken);
-  console.log(dealId);
+exports.initialSaveData = async (googleApiUrl, accessToken, dealId) => {
+  //   console.log(GOOGLE_API_URL);
+  //   console.log(accessToken);
+  //   console.log(dealId);
+  googleApiUrl = googleApiUrl;
 
   hubspotClient = new hubspot.Client({ accessToken: accessToken });
 

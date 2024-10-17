@@ -11,6 +11,7 @@ const express = require("express");
 const axios = require("axios");
 const hubspot = require("@hubspot/api-client");
 const { saveData } = require("./saveData");
+const { initialSaveData } = require("./inintialSaveData");
 
 const app = express();
 
@@ -207,6 +208,14 @@ app.patch("/save-data", async (req, res) => {
   await saveData(GOOGLE_API_URL, accessToken, ticketId, fees);
   res.status(200).json({ message: "save finished" });
 });
+
+app.patch("/initial-save-data", async (req, res) => {
+  const accessToken = await getAccessToken();
+  const { dealId } = req.body;
+  await initialSaveData(GOOGLE_API_URL, accessToken, dealId);
+  res.status(200).json({ message: "initial save finished" });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

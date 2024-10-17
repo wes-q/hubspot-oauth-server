@@ -38,6 +38,7 @@ async function getDealsAssociatedTickets(dealID) {
 }
 
 const getCalculatedProperties = async (buildingType, costBasis, monthAcquired, yearAcquired, yearApplied, year5, year7, year15, fees) => {
+  console.log("inside getCalc", googleApiUrl);
   let executeScriptURL = `${googleApiUrl}?buildingType=${buildingType}&costBasis=${costBasis}&monthAcquired=${monthAcquired}&yearAcquired=${yearAcquired}&yearApplied=${yearApplied}&year5=${year5}&year7=${year7}&year15=${year15}`;
 
   if (parseFloat(fees) > 0) {
@@ -112,11 +113,12 @@ const batchCreateLineItems = async (ticketsPropsAndData, dealID) => {
   }
 };
 
-exports.initialSaveData = async (googleApiUrl, accessToken, dealId) => {
-  //   console.log(GOOGLE_API_URL);
-  //   console.log(accessToken);
-  //   console.log(dealId);
-  googleApiUrl = googleApiUrl;
+exports.initialSaveData = async (url, accessToken, dealId) => {
+  console.log(url);
+  console.log(accessToken);
+  console.log(dealId);
+  googleApiUrl = url;
+  console.log(googleApiUrl);
 
   hubspotClient = new hubspot.Client({ accessToken: accessToken });
 

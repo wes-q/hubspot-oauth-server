@@ -11,7 +11,7 @@ const express = require("express");
 const axios = require("axios");
 const hubspot = require("@hubspot/api-client");
 const { saveData } = require("./saveData");
-const { initialSaveData } = require("./inintialSaveData");
+const { initialSaveData } = require("./initialSaveData");
 
 const app = express();
 

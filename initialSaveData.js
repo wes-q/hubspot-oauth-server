@@ -136,7 +136,7 @@ exports.initialSaveData = async (url, accessToken, dealId) => {
         props.cost_basis,
         placedDate.getMonth() + 1,
         placedDate.getFullYear(),
-        props.property__bonus__year_applied,
+        Math.floor(props.property__bonus__year_applied),
         props.property_5yr_est,
         props.property_7yr_est,
         props.property_15yr_est,

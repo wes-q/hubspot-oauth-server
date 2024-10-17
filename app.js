@@ -209,12 +209,30 @@ app.patch("/save-data", async (req, res) => {
   res.status(200).json({ message: "save finished" });
 });
 
+// app.patch("/initial-save-data", async (req, res) => {
+//   const accessToken = await getAccessToken();
+//   const { dealId } = req.body;
+//   await initialSaveData(GOOGLE_API_URL, accessToken, dealId);
+//   res.status(200).json({ message: "initial save finished" });
+// });
+
 app.patch("/initial-save-data", async (req, res) => {
-  const accessToken = await getAccessToken();
+  // Extract the necessary data
   const { dealId } = req.body;
-  await initialSaveData(GOOGLE_API_URL, accessToken, dealId);
-  res.status(200).json({ message: "initial save finished" });
+
+  // Respond immediately to HubSpot to avoid timeout
+  res.status(200).json({ message: "Job triggered successfully" });
+
+  try {
+    // Continue processing in the background after responding to HubSpot
+    const accessToken = await getAccessToken();
+    await initialSaveData(GOOGLE_API_URL, accessToken, dealId);
+    console.log(`Initial save for dealId ${dealId} completed.`);
+  } catch (error) {
+    console.error(`Error processing dealId ${dealId}:`, error);
+  }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -1,5 +1,5 @@
 {
-  "name": "oauth_tutorial",
+  "name": "hubspot_oauth_server",
   "version": "1.0.0",
   "main": "app.js",
   "license": "MIT",

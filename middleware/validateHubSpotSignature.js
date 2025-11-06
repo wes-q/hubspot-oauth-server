@@ -11,7 +11,7 @@ const validateHubSpotSignature = (clientSecret) => (req, res, next) => {
     // Check if headers exist
     if (!signatureHeader || !timestampHeader) {
         console.log("❌ Missing signature or timestamp headers");
-        return response.status(401).json({ error: "Missing required HubSpot headers" });
+        return res.status(401).json({ error: "Missing required HubSpot headers" });
     }
 
     // Validate timestamp

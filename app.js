@@ -135,8 +135,8 @@ app.get("/error", (req, res) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// app.get("/hello", validateHubSpotSignature(CLIENT_SECRET), (req, res) => {
-app.get("/hello", (req, res) => {
+app.get("/hello", validateHubSpotSignature(CLIENT_SECRET), (req, res) => {
+    // app.get("/hello", (req, res) => {
     res.status(200).json({ message: "Signature is valid therefore, hello!" });
 });
 
